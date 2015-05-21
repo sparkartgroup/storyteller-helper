@@ -17,6 +17,7 @@ $site_subdomain = str_replace(array('http://', 'https://'), '', site_url());
 include 'admin/storyteller-settings.php';
 
 function clear_storyteller_cache($routes_to_clear) {
+  global $site_subdomain;
   foreach ($routes_to_clear as $route) {
     $url = 'http://proxy.storyteller.io/wordpress-rest-api/' . $site_subdomain . $route;
     $args = array(
