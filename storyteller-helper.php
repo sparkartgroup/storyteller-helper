@@ -13,16 +13,13 @@
 defined( 'ABSPATH' ) or die( 'Access denied!' );
 
 // WordPress Action Reference: https://codex.wordpress.org/Plugin_API/Action_Reference
-function clear_storyteller_post_cache() {
-  // get_post($post_id) should return page or post id here
+function clear_storyteller_post_cache($post_id, $post_after, $post_before) {
   // Clear /posts
   // Clear /pages
 }
-add_action('save_post', 'clear_storyteller_post_cache');
-add_action('publish_future_post', 'clear_storyteller_post_cache');
-add_action('deleted_post', 'clear_storyteller_post_cache');
+add_action( 'post_updated', 'clear_storyteller_post_cache');
 
-function clear_storyteller_attachment_cache() {
+function clear_storyteller_attachment_cache($attachment_id) {
   // Clear /media
 }
 add_action('add_attachment', 'clear_storyteller_attachment_cache');
