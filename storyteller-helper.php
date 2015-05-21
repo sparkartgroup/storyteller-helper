@@ -12,16 +12,31 @@
 // Blocks direct access to plugin PHP files
 defined( 'ABSPATH' ) or die( 'Access denied!' );
 
+$site_subdomain = str_replace(array('http://', 'https://'), '', site_url());
+
 include 'admin/storyteller-settings.php';
-// WordPress Action Reference: https://codex.wordpress.org/Plugin_API/Action_Reference
+
+function clear_storyteller_cache($routes_to_clear) {
+  foreach ($routes_to_clear as $route) {
+    $url = 'http://proxy.storyteller.io/wordpress-rest-api/' . $site_subdomain . $route;
+    $args = array(
+      'method' => 'PUT',
+      'headers' => array(
+        'Api-Key' => get_option('storyteller_apikey'),
+        'Project' => get_option('storyteller_project')
+      )
+    );
+    $response = wp_remote_request( $url, $args );
+  }
+}
+
 function clear_storyteller_post_cache($post_id, $post_after, $post_before) {
-  // Clear /posts
-  // Clear /pages
+  clear_storyteller_cache(array('/pages', '/posts'));
 }
 add_action( 'post_updated', 'clear_storyteller_post_cache');
 
 function clear_storyteller_attachment_cache($attachment_id) {
-  // Clear /media
+  clear_storyteller_cache(array('/media'));
 }
 add_action('add_attachment', 'clear_storyteller_attachment_cache');
 add_action('edit_attachment', 'clear_storyteller_attachment_cache');
