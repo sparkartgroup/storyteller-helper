@@ -12,6 +12,7 @@
 // Blocks direct access to plugin PHP files
 defined( 'ABSPATH' ) or die( 'Access denied!' );
 
+include 'admin/storyteller-settings.php';
 // WordPress Action Reference: https://codex.wordpress.org/Plugin_API/Action_Reference
 function clear_storyteller_post_cache($post_id, $post_after, $post_before) {
   // Clear /posts
