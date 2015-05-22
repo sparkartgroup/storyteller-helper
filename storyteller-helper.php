@@ -31,14 +31,47 @@ function clear_storyteller_cache($routes_to_clear) {
   }
 }
 
-function clear_storyteller_post_cache($post_id, $post_after, $post_before) {
-  clear_storyteller_cache(array('/pages', '/posts'));
+function clear_storyteller_post_cache($post_id) {
+  $routes_to_clear = array();
+  $updated_post = get_post($post_id);
+  if ($updated_post->post_type == 'page') {
+    $parent_post = $updated_post->post_parent? get_post($updated_post->post_parent) : null;
+    $parent_slug = $parent_post->post_name?$parent_post->post_name.'/':null;
+    array_push($routes_to_clear,
+      '/pages',
+      '/pages/'.$post_id,
+      '/pages/'.$parent_slug.$updated_post->post_name
+    );
+  } else {
+    array_push($routes_to_clear,
+      '/posts',
+      '/posts/'.$post_id
+    );
+  }
+  clear_storyteller_cache($routes_to_clear);
 }
 add_action( 'post_updated', 'clear_storyteller_post_cache');
 
 function clear_storyteller_attachment_cache($attachment_id) {
-  clear_storyteller_cache(array('/media'));
+  $routes_to_clear = array();
+  array_push($routes_to_clear,
+    '/media',
+    '/media/'.$attachment_id
+  );
+  clear_storyteller_cache($routes_to_clear);
 }
 add_action('add_attachment', 'clear_storyteller_attachment_cache');
 add_action('edit_attachment', 'clear_storyteller_attachment_cache');
 add_action('delete_attachment', 'clear_storyteller_attachment_cache');
+
+function clear_storyteller_category_cache($category_id) {
+  $routes_to_clear = array();
+  array_push($routes_to_clear,
+    '/posts/types/post/taxonomies/category/terms',
+    '/posts/types/post/taxonomies/category/terms/'.$category_id
+  );
+  clear_storyteller_cache($routes_to_clear);
+}
+add_action('add_category', 'clear_storyteller_category_cache');
+add_action('edit_category', 'clear_storyteller_category_cache');
+add_action('delete_category', 'clear_storyteller_category_cache');
