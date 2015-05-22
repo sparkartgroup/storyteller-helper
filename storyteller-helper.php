@@ -16,15 +16,30 @@ $site_subdomain = str_replace(array('http://', 'https://'), '', site_url());
 
 include 'admin/storyteller-settings.php';
 
+$storyteller_project = get_option('storyteller_project');
+$storyteller_apikey = get_option('storyteller_apikey');
+
+if ($storyteller_project && $storyteller_apikey) {
+  add_action( 'post_updated', 'clear_storyteller_post_cache');
+
+  add_action('add_attachment', 'clear_storyteller_attachment_cache');
+  add_action('edit_attachment', 'clear_storyteller_attachment_cache');
+  add_action('delete_attachment', 'clear_storyteller_attachment_cache');
+
+  add_action('add_category', 'clear_storyteller_category_cache');
+  add_action('edit_category', 'clear_storyteller_category_cache');
+  add_action('delete_category', 'clear_storyteller_category_cache');
+}
+
 function clear_storyteller_cache($routes_to_clear) {
-  global $site_subdomain;
+  global $site_subdomain, $storyteller_project, $storyteller_apikey;
   foreach ($routes_to_clear as $route) {
     $url = 'http://proxy.storyteller.io/wordpress-rest-api/' . $site_subdomain . $route;
     $args = array(
       'method' => 'PUT',
       'headers' => array(
-        'Api-Key' => get_option('storyteller_apikey'),
-        'Project' => get_option('storyteller_project')
+        'Project' => $storyteller_project,
+        'Api-Key' => $storyteller_apikey
       )
     );
     $response = wp_remote_request( $url, $args );
@@ -50,7 +65,6 @@ function clear_storyteller_post_cache($post_id) {
   }
   clear_storyteller_cache($routes_to_clear);
 }
-add_action( 'post_updated', 'clear_storyteller_post_cache');
 
 function clear_storyteller_attachment_cache($attachment_id) {
   $routes_to_clear = array();
@@ -60,9 +74,6 @@ function clear_storyteller_attachment_cache($attachment_id) {
   );
   clear_storyteller_cache($routes_to_clear);
 }
-add_action('add_attachment', 'clear_storyteller_attachment_cache');
-add_action('edit_attachment', 'clear_storyteller_attachment_cache');
-add_action('delete_attachment', 'clear_storyteller_attachment_cache');
 
 function clear_storyteller_category_cache($category_id) {
   $routes_to_clear = array();
@@ -72,6 +83,3 @@ function clear_storyteller_category_cache($category_id) {
   );
   clear_storyteller_cache($routes_to_clear);
 }
-add_action('add_category', 'clear_storyteller_category_cache');
-add_action('edit_category', 'clear_storyteller_category_cache');
-add_action('delete_category', 'clear_storyteller_category_cache');
