@@ -29,10 +29,14 @@ if ($storyteller_project && $storyteller_apikey) {
   add_action('add_category', 'clear_storyteller_category_cache');
   add_action('edit_category', 'clear_storyteller_category_cache');
   add_action('delete_category', 'clear_storyteller_category_cache');
+
+  add_filter('redirect_post_location', 'pass_storyteller_confirmation');
+  add_filter('post_updated_messages', 'add_storyteller_confirmation');
 }
 
 function clear_storyteller_cache($routes_to_clear) {
   global $site_subdomain, $storyteller_project, $storyteller_apikey;
+  $routes_cleared = array();
   foreach ($routes_to_clear as $route) {
     $url = 'http://proxy.storyteller.io/wordpress-rest-api/' . $site_subdomain . $route;
     $args = array(
@@ -43,7 +47,32 @@ function clear_storyteller_cache($routes_to_clear) {
       )
     );
     $response = wp_remote_request( $url, $args );
+    $response_body = json_decode($response['body']);
+    if ($response_body->status == 'ok') {
+      array_push($routes_cleared, $route);
+    }
   }
+  $_POST['storyteller_routes_cleared'] = $routes_cleared;
+}
+
+function pass_storyteller_confirmation($location){
+  if (isset($_POST['storyteller_routes_cleared'])) {
+    $routes_param = array('storyteller_routes_cleared' => $_POST['storyteller_routes_cleared']);
+    $location = esc_url_raw(add_query_arg($routes_param, $location));
+  }
+  return $location;
+}
+
+function add_storyteller_confirmation($messages) {
+  if ($_GET['storyteller_routes_cleared']) {
+    $post = get_post();
+    $post_type = get_post_type($post);
+    $routes_string = '<code>'. implode('</code>, <code>', $_GET['storyteller_routes_cleared']) . '</code>';
+    foreach ($messages[$post_type] as &$msg) {
+      $msg = $msg . '<br> Storyteller caches cleared: ' . $routes_string;
+    }
+  }
+  return $messages;
 }
 
 function clear_storyteller_post_cache($post_id) {
