@@ -24,6 +24,15 @@ function storyteller_settings_init() {
     'storyteller_settings'
   );
   register_setting( 'general', 'storyteller_apikey' );
+
+  add_settings_field(
+    'storyteller_proxyurl',
+    'Proxy URL',
+    'storyteller_proxyurl_setup',
+    'general',
+    'storyteller_settings'
+  );
+  register_setting( 'general', 'storyteller_proxyurl' );
 } 
 add_action( 'admin_init', 'storyteller_settings_init' );
 
@@ -37,6 +46,12 @@ function storyteller_apikey_setup() {
   $storyteller_apikey = get_option('storyteller_apikey');
   $storyteller_key = isset($storyteller_apikey) ? $storyteller_apikey : '';
   echo '<input name="storyteller_apikey" id="storytellerApiKey" type="text" value="' . $storyteller_key . '" />';
+}
+
+function storyteller_proxyurl_setup() {
+  $storyteller_proxyurl = get_option('storyteller_proxyurl');
+  $storyteller_url = isset($storyteller_proxyurl) ? $storyteller_proxyurl : 'http://proxy.storyteller.io/wordpress-rest-api/';
+  echo '<input name="storyteller_proxyurl" id="storytellerProxyUrl" type="text" value="' . $storyteller_url . '" />';
 }
 
 function storyteller_settings_section_setup() {
