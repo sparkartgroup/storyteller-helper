@@ -3,7 +3,7 @@
  * Plugin Name: Storyteller Helper
  * Plugin URI:  https://github.com/SparkartGroupInc/storyteller-helper
  * Description: Adds useful features for use with Storyteller.io such as triggering webhooks to clear the Storyteller cache on post updates.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Sparkart Group, Inc.
  * Author URI:  http://sparkart.com
  * License:     MIT
@@ -54,10 +54,14 @@ function clear_storyteller_cache($routes_to_clear) {
       )
     );
     $response = wp_remote_request( $url, $args );
-    $response_body = json_decode($response['body']);
-    if ($response_body->status == 'ok') {
-      array_push($routes_cleared, $route);
-    } elseif ($response_body->status == 'error') {
+    if( !is_wp_error( $response ) ) {
+      $response_body = json_decode($response['body']);
+      if ($response_body->status == 'ok') {
+        array_push($routes_cleared, $route);
+      } elseif ($response_body->status == 'error') {
+        array_push($routes_errored, $route);
+      }
+    } else {
       array_push($routes_errored, $route);
     }
   }
